@@ -1,3 +1,35 @@
 from django.db import models
 
-# Create your models here.
+
+class Standing(models.Model):
+    group = models.ForeignKey(
+        "groups.Group",
+        on_delete=models.CASCADE,
+        related_name="standings"
+    )
+    team = models.ForeignKey(
+        "teams.Team",
+        on_delete=models.CASCADE,
+        related_name="standings"
+    )
+    played = models.PositiveIntegerField(default=0)
+    wins = models.PositiveIntegerField(default=0)
+    draws = models.PositiveIntegerField(default=0)
+    losses = models.PositiveIntegerField(default=0)
+    goals_for = models.PositiveIntegerField(default=0)
+    goals_against = models.PositiveIntegerField(default=0)
+    goal_difference = models.IntegerField(default=0)
+    points = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["group", "team"], name="unique_group_team_standing")
+        ]
+        ordering = ["group__name", "-points",
+                    "-goal_difference", "-goals_for", "team__name"]
+        verbose_name = "Classificação"
+        verbose_name_plural = "Classificações"
+
+    def __str__(self):
+        return f"{self.group} - {self.team} ({self.points} pts)"
