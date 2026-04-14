@@ -1,0 +1,136 @@
+{
+  "groups": [
+    {
+      "name": "A",
+      "teams": [
+        {
+          "name": "Brasil",
+          "code": "BRA",
+          "attack": 88,
+          "defense": 85,
+          "continent": "SOUTH_AMERICA"
+        },
+        {
+          "name": "Japão",
+          "code": "JPN",
+          "attack": 74,
+          "defense": 73,
+          "continent": "ASIA"
+        },
+        {
+          "name": "México",
+          "code": "MEX",
+          "attack": 76,
+          "defense": 74,
+          "continent": "NORTH_AMERICA"
+        },
+        {
+          "name": "Nigéria",
+          "code": "NGA",
+          "attack": 75,
+          "defense": 72,
+          "continent": "AFRICA"
+        }
+      ]
+    },
+    {
+      "name": "B",
+      "teams": [
+        {
+          "name": "França",
+          "code": "FRA",
+          "attack": 89,
+          "defense": 87,
+          "continent": "EUROPE"
+        },
+        {
+          "name": "Estados Unidos",
+          "code": "USA",
+          "attack": 77,
+          "defense": 75,
+          "continent": "NORTH_AMERICA"
+        },
+        {
+          "name": "Coreia do Sul",
+          "code": "KOR",
+          "attack": 74,
+          "defense": 73,
+          "continent": "ASIA"
+        },
+        {
+          "name": "Marrocos",
+          "code": "MAR",
+          "attack": 80,
+          "defense": 79,
+          "continent": "AFRICA"
+        }
+      ]
+    },
+    {
+      "name": "C",
+      "teams": [
+        {
+          "name": "Argentina",
+          "code": "ARG",
+          "attack": 87,
+          "defense": 84,
+          "continent": "SOUTH_AMERICA"
+        },
+        {
+          "name": "Alemanha",
+          "code": "GER",
+          "attack": 84,
+          "defense": 82,
+          "continent": "EUROPE"
+        },
+        {
+          "name": "Canadá",
+          "code": "CAN",
+          "attack": 75,
+          "defense": 74,
+          "continent": "NORTH_AMERICA"
+        },
+        {
+          "name": "Senegal",
+          "code": "SEN",
+          "attack": 78,
+          "defense": 77,
+          "continent": "AFRICA"
+        }
+      ]
+    },
+    {
+      "name": "D",
+      "teams": [
+        {
+          "name": "Espanha",
+          "code": "ESP",
+          "attack": 86,
+          "defense": 83,
+          "continent": "EUROPE"
+        },
+        {
+          "name": "Inglaterra",
+          "code": "ENG",
+          "attack": 85,
+          "defense": 84,
+          "continent": "EUROPE"
+        },
+        {
+          "name": "Austrália",
+          "code": "AUS",
+          "attack": 72,
+          "defense": 72,
+          "continent": "OCEANIA"
+        },
+        {
+          "name": "Equador",
+          "code": "ECU",
+          "attack": 77,
+          "defense": 76,
+          "continent": "SOUTH_AMERICA"
+        }
+      ]
+    }
+  ]
+}
