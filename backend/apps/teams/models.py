@@ -34,5 +34,9 @@ class Team(models.Model):
         verbose_name = "Seleção"
         verbose_name_plural = "Seleções"
 
+    def save(self, *args, **kwargs):
+        self.overall = (self.attack + self.defense) // 2
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.name} ({self.code})"

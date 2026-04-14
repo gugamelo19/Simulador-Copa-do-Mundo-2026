@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework import generics
 
-# Create your views here.
+from apps.teams.models import Team
+from apps.teams.serializers import TeamSerializer
+
+
+class TeamListAPIView(generics.ListAPIView):
+    queryset = Team.objects.select_related("group").all()
+    serializer_class = TeamSerializer

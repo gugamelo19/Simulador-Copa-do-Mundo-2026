@@ -6,8 +6,8 @@ class Group(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = "Group"
-        verbose_name_plural = "Group"
+        verbose_name = "Grupo"
+        verbose_name_plural = "Grupos"
 
-        def __str__(self):
-            return f"Grupo {self.name}"
+    def __str__(self):
+        return f"Grupo {self.name}"
