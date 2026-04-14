@@ -1,15 +1,32 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Navbar() {
-  return (
-    <nav className="navbar">
-      <h1>Simulador Copa 2026</h1>
+  const location = useLocation();
 
-      <div className="nav-links">
-        <Link to="/">Home</Link>
-        <Link to="/groups">Grupos</Link>
-        <Link to="/matches">Partidas</Link>
-        <Link to="/standings">Classificação</Link>
+  const menuItems = [
+    { path: "/", label: "Início" },
+    { path: "/groups", label: "Grupos" },
+    { path: "/matches", label: "Partidas" },
+    { path: "/knockout", label: "Mata-Mata" },
+    { path: "/stats", label: "Estatísticas" },
+  ];
+
+  return (
+    <nav className="navbar-premium">
+      <div className="navbar-logo">
+        🏆 Copa 2026 <span>Simulator</span>
+      </div>
+
+      <div className="navbar-menu">
+        {menuItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={location.pathname === item.path ? "nav-item active" : "nav-item"}
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
     </nav>
   );

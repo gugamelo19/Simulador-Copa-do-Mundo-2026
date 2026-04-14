@@ -21,6 +21,19 @@ export default function Standings() {
     fetchStandings();
   }, []);
 
+  function groupStandingsByGroup(data) {
+    return data.reduce((acc, standing) => {
+      const groupName = standing.group_name;
+
+      if (!acc[groupName]) {
+        acc[groupName] = [];
+      }
+
+      acc[groupName].push(standing);
+      return acc;
+    }, {});
+  }
+
   if (loading) {
     return (
       <div className="page">
@@ -30,10 +43,18 @@ export default function Standings() {
     );
   }
 
+  const groupedStandings = groupStandingsByGroup(standings);
+
   return (
     <div className="page">
-      <h2>Classificação Geral</h2>
-      <StandingTable standings={standings} />
+      <h2>Classificação por Grupo</h2>
+
+      {Object.entries(groupedStandings).map(([groupName, groupStandings]) => (
+        <div key={groupName} className="group-standing-block">
+          <h3>Grupo {groupName}</h3>
+          <StandingTable standings={groupStandings} />
+        </div>
+      ))}
     </div>
   );
 }

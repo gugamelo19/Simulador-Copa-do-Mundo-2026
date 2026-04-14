@@ -4,6 +4,8 @@ import Groups from "../pages/Groups";
 import Matches from "../pages/Matches";
 import Standings from "../pages/Standings";
 import Navbar from "../components/Navbar";
+import Knockout from "../pages/Knockout";
+
 
 export default function AppRoutes() {
   return (
@@ -14,6 +16,7 @@ export default function AppRoutes() {
         <Route path="/groups" element={<Groups />} />
         <Route path="/matches" element={<Matches />} />
         <Route path="/standings" element={<Standings />} />
+        <Route path="/knockout" element={<Knockout />} />
       </Routes>
     </BrowserRouter>
   );
