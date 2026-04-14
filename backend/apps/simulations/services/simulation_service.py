@@ -3,6 +3,9 @@ import random
 from django.shortcuts import get_object_or_404
 
 from apps.matches.models import Match
+
+from apps.standings.models import Standing
+
 from apps.simulations.services.standings_service import recalculate_all_group_standings
 
 
@@ -64,3 +67,37 @@ def simulate_match(match_id):
         recalculate_all_group_standings()
 
     return match
+
+
+def simulate_all_group_matches():
+    from apps.matches.models import Match
+
+    matches = Match.objects.filter(phase="GROUP", played=False)
+
+    simulated_matches = []
+
+    for match in matches:
+        simulated_match = simulate_match(match.id)
+        simulated_matches.append(simulated_match)
+
+    return simulated_matches
+
+
+def reset_all_matches_and_standings():
+    Match.objects.all().update(
+        home_score=None,
+        away_score=None,
+        played=False,
+        winner=None,
+    )
+
+    Standing.objects.all().update(
+        played=0,
+        wins=0,
+        draws=0,
+        losses=0,
+        goals_for=0,
+        goals_against=0,
+        goal_difference=0,
+        points=0,
+    )

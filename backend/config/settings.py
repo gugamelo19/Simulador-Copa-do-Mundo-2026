@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'apps.matches',
     'apps.standings',
     'apps.simulations',
+    'apps.dashboard',
 
 
 ]
