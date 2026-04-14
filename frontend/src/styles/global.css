@@ -73,3 +73,22 @@ a {
 .match-card button:hover {
   background: #333;
 }
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  margin-top: 20px;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.standings-table th {
+  background: #111;
+  color: white;
+}
