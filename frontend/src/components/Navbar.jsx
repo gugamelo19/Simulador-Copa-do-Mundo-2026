@@ -7,8 +7,10 @@ export default function Navbar() {
     { path: "/", label: "Início" },
     { path: "/groups", label: "Grupos" },
     { path: "/matches", label: "Partidas" },
+    { path: "/standings", label: "Resultados" },
     { path: "/knockout", label: "Mata-Mata" },
     { path: "/stats", label: "Estatísticas" },
+    { path: "/results", label: "Finais" },
   ];
 
   return (

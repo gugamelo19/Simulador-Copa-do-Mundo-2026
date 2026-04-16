@@ -15,10 +15,11 @@ const FILTERS = [
   { key: "J", label: "Grupo J" },
   { key: "K", label: "Grupo K" },
   { key: "L", label: "Grupo L" },
+  { key: "R32", label: "16 Avos" },
   { key: "R16", label: "Oitavas" },
   { key: "QF", label: "Quartas" },
   { key: "SF", label: "Semifinais" },
-  { key: "THIRD", label: "Terceiro Lugar" },
+  { key: "THIRD", label: "3º Lugar" },
   { key: "FINAL", label: "Final" },
 ];
 
@@ -26,6 +27,7 @@ export default function Matches() {
   const [matches, setMatches] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("ALL");
   const [loading, setLoading] = useState(true);
+  const [simulatingAll, setSimulatingAll] = useState(false);
   const [error, setError] = useState("");
 
   async function fetchMatches() {
@@ -51,19 +53,25 @@ export default function Matches() {
 
   async function simulateAllMatches() {
     try {
+      setSimulatingAll(true);
+      setError("");
       await client.post("/matches/simulate-all/");
       await fetchMatches();
     } catch (err) {
       console.error("Erro ao simular todas as partidas:", err);
+      setError("Erro ao simular todas as partidas.");
+    } finally {
+      setSimulatingAll(false);
     }
   }
 
   async function resetMatches() {
     try {
-      await client.post("/matches/reset/");
+      await client.post("/dashboard/reset-tournament/");
       await fetchMatches();
     } catch (err) {
       console.error("Erro ao resetar partidas:", err);
+      setError("Erro ao resetar partidas.");
     }
   }
 
@@ -85,23 +93,8 @@ export default function Matches() {
     return (
       <div className="page">
         <section className="matches-premium-page">
-          <h1 className="section-title">
-            <span>Partidas</span>
-          </h1>
+          <h1 className="section-title"><span>Partidas</span></h1>
           <p>Carregando partidas...</p>
-        </section>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="page">
-        <section className="matches-premium-page">
-          <h1 className="section-title">
-            <span>Partidas</span>
-          </h1>
-          <p>{error}</p>
         </section>
       </div>
     );
@@ -121,10 +114,16 @@ export default function Matches() {
         </div>
 
         <div className="matches-top-actions">
-          <button className="simulate-all-button" onClick={simulateAllMatches}>
-            Simular Todas
+          <button
+            className="matches-run-all-button"
+            onClick={simulateAllMatches}
+            disabled={simulatingAll}
+          >
+            {simulatingAll ? "Simulando..." : "⚽ Simular Todas"}
           </button>
         </div>
+
+        {error && <p>{error}</p>}
 
         <div className="group-filter-bar">
           {FILTERS.map((filter) => (

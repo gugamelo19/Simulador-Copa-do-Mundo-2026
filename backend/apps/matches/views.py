@@ -4,7 +4,10 @@ from rest_framework.views import APIView
 
 from apps.matches.models import Match
 from apps.matches.serializers import MatchSerializer
-from apps.simulations.services.simulation_service import simulate_match, simulate_all_group_matches, reset_all_matches_and_standings
+from apps.simulations.services.simulation_service import (
+    simulate_match,
+    simulate_all_group_matches,
+)
 
 
 class MatchListAPIView(generics.ListAPIView):
@@ -47,9 +50,3 @@ class SimulateAllMatchesAPIView(APIView):
         matches = simulate_all_group_matches()
         serializer = MatchSerializer(matches, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class ResetMatchesAPIView(APIView):
-    def post(self, request):
-        reset_all_matches_and_standings()
-        return Response({"detail": "Partidas e classificações resetadas com sucesso."}, status=status.HTTP_200_OK)

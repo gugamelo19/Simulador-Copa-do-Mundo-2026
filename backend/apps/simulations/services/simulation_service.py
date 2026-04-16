@@ -3,9 +3,6 @@ import random
 from django.shortcuts import get_object_or_404
 
 from apps.matches.models import Match
-
-from apps.standings.models import Standing
-
 from apps.simulations.services.standings_service import recalculate_all_group_standings
 
 
@@ -22,7 +19,7 @@ def generate_goals(attack, opponent_defense, overall_difference=0):
         return random.choices([0, 1, 2], weights=[45, 40, 15])[0]
 
 
-def simulate_match(match_id):
+def simulate_match(match_id, recalculate_standings=True):
     match = get_object_or_404(
         Match.objects.select_related("home_team", "away_team", "group"),
         id=match_id
@@ -63,33 +60,32 @@ def simulate_match(match_id):
 
     match.save()
 
-    if match.phase == "GROUP":
+    if match.phase == "GROUP" and recalculate_standings:
         recalculate_all_group_standings()
 
     return match
 
 
 def simulate_all_group_matches():
-    from apps.matches.models import Match
-
-    matches = Match.objects.filter(phase="GROUP", played=False)
+    matches = Match.objects.filter(phase="GROUP", played=False).select_related(
+        "home_team", "away_team", "group"
+    )
 
     simulated_matches = []
 
     for match in matches:
-        simulated_match = simulate_match(match.id)
-        simulated_matches.append(simulated_match)
+        simulated_matches.append(simulate_match(
+            match.id, recalculate_standings=False))
+
+    recalculate_all_group_standings()
 
     return simulated_matches
 
 
 def reset_all_matches_and_standings():
-    Match.objects.all().update(
-        home_score=None,
-        away_score=None,
-        played=False,
-        winner=None,
-    )
+    from apps.standings.models import Standing
+
+    Match.objects.all().delete()
 
     Standing.objects.all().update(
         played=0,

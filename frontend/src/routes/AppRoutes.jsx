@@ -3,9 +3,10 @@ import Home from "../pages/Home";
 import Groups from "../pages/Groups";
 import Matches from "../pages/Matches";
 import Standings from "../pages/Standings";
-import Navbar from "../components/Navbar";
 import Knockout from "../pages/Knockout";
-
+import Stats from "../pages/Stats";
+import Results from "../pages/Results";
+import Navbar from "../components/Navbar";
 
 export default function AppRoutes() {
   return (
@@ -17,6 +18,8 @@ export default function AppRoutes() {
         <Route path="/matches" element={<Matches />} />
         <Route path="/standings" element={<Standings />} />
         <Route path="/knockout" element={<Knockout />} />
+        <Route path="/stats" element={<Stats />} />
+        <Route path="/results" element={<Results />} />
       </Routes>
     </BrowserRouter>
   );

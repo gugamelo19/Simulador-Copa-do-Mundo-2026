@@ -1,5 +1,9 @@
 from django.core.management.base import BaseCommand
 
+from apps.groups.models import Group
+from apps.matches.models import Match
+from apps.standings.models import Standing
+from apps.teams.models import Team
 from apps.simulations.services.match_generator import generate_group_stage_matches
 from apps.simulations.services.seed_service import (
     initialize_group_standings,
@@ -12,6 +16,11 @@ class Command(BaseCommand):
     help = "Popula grupos, seleções, classificação inicial e partidas da fase de grupos"
 
     def handle(self, *args, **options):
+        Match.objects.all().delete()
+        Standing.objects.all().delete()
+        Team.objects.all().delete()
+        Group.objects.all().delete()
+
         seed_groups()
         self.stdout.write(self.style.SUCCESS("Grupos criados com sucesso."))
 

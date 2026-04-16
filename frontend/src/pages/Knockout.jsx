@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import client from "../api/client";
 
 const PHASES = [
-  { key: "R16", label: "Oitavas de Final" },
-  { key: "QF", label: "Quartas de Final" },
+  { key: "R32", label: "16 Avos" },
+  { key: "R16", label: "Oitavas" },
+  { key: "QF", label: "Quartas" },
   { key: "SF", label: "Semifinais" },
   { key: "FINAL", label: "Final" },
   { key: "THIRD", label: "3º Lugar" },
@@ -12,41 +13,43 @@ const PHASES = [
 export default function Knockout() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadKnockoutMatches() {
-      try {
-        const response = await client.get("/matches/");
-        const allMatches = Array.isArray(response.data) ? response.data : [];
-
-        if (isMounted) {
-          setMatches(allMatches);
-        }
-      } catch (err) {
-        console.error("Erro ao carregar mata-mata:", err);
-
-        if (isMounted) {
-          setError("Erro ao carregar os confrontos do mata-mata.");
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
+  async function loadKnockoutMatches() {
+    try {
+      const response = await client.get("/matches/");
+      const allMatches = Array.isArray(response.data) ? response.data : [];
+      setMatches(allMatches);
+    } catch (err) {
+      console.error("Erro ao carregar mata-mata:", err);
+      setError("Erro ao carregar os confrontos do mata-mata.");
+    } finally {
+      setLoading(false);
     }
+  }
 
+  async function runFullKnockout() {
+    try {
+      setRunning(true);
+      setError("");
+      await client.post("/dashboard/knockout/run-full/");
+      await loadKnockoutMatches();
+    } catch (err) {
+      console.error("Erro ao executar mata-mata:", err);
+      setError("Erro ao executar o mata-mata.");
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  useEffect(() => {
     loadKnockoutMatches();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   const knockoutData = useMemo(() => {
     const grouped = {
+      R32: [],
       R16: [],
       QF: [],
       SF: [],
@@ -66,28 +69,17 @@ export default function Knockout() {
   const finalMatch = knockoutData.FINAL?.[0];
   const championName =
     finalMatch && finalMatch.played
-      ? finalMatch.home_score > finalMatch.away_score
-        ? finalMatch.home_team_name
-        : finalMatch.away_team_name
+      ? finalMatch.winner_name || "A definir"
       : "A definir";
 
   if (loading) {
     return (
       <div className="page">
         <section className="knockout-page">
-          <h1 className="section-title">Mata-Mata</h1>
+          <h1 className="section-title">
+            <span>Mata-Mata</span>
+          </h1>
           <p>Carregando mata-mata...</p>
-        </section>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="page">
-        <section className="knockout-page">
-          <h1 className="section-title">Mata-Mata</h1>
-          <p>{error}</p>
         </section>
       </div>
     );
@@ -96,9 +88,21 @@ export default function Knockout() {
   return (
     <div className="page">
       <section className="knockout-page">
-        <h1 className="section-title">
-          <span>Mata-Mata</span>
-        </h1>
+        <div className="matches-header-row">
+          <h1 className="section-title">
+            <span>Mata-Mata</span>
+          </h1>
+
+          <button
+            className="knockout-run-button"
+            onClick={runFullKnockout}
+            disabled={running}
+          >
+            {running ? "Executando..." : "⚔️ Gerar e Simular Mata-Mata"}
+          </button>
+        </div>
+
+        {error && <p>{error}</p>}
 
         <div className="champion-banner">
           <div className="champion-icon">🏆</div>
@@ -114,8 +118,13 @@ export default function Knockout() {
               <div className="knockout-match-list">
                 {(knockoutData[phase.key] || []).length > 0 ? (
                   knockoutData[phase.key].map((match) => {
-                    const homeWon = match.played && match.home_score > match.away_score;
-                    const awayWon = match.played && match.away_score > match.home_score;
+                    const homeWon =
+                      match.played &&
+                      match.winner_name === match.home_team_name;
+
+                    const awayWon =
+                      match.played &&
+                      match.winner_name === match.away_team_name;
 
                     return (
                       <div key={match.id} className="knockout-match-card">

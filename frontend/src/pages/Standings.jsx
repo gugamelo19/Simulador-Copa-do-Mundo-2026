@@ -37,8 +37,12 @@ export default function Standings() {
   if (loading) {
     return (
       <div className="page">
-        <h2>Classificação</h2>
-        <p>Carregando classificação...</p>
+        <section className="standings-page">
+          <h1 className="section-title">
+            <span>Resultados</span>
+          </h1>
+          <p>Carregando classificação...</p>
+        </section>
       </div>
     );
   }
@@ -47,14 +51,27 @@ export default function Standings() {
 
   return (
     <div className="page">
-      <h2>Classificação por Grupo</h2>
+      <section className="standings-page">
+        <h1 className="section-title">
+          <span>Resultados</span>
+        </h1>
 
-      {Object.entries(groupedStandings).map(([groupName, groupStandings]) => (
-        <div key={groupName} className="group-standing-block">
-          <h3>Grupo {groupName}</h3>
-          <StandingTable standings={groupStandings} />
+        <p className="section-subtitle">
+          Classificação atual da fase de grupos da Copa 2026.
+        </p>
+
+        <div className="standings-groups-grid">
+          {Object.entries(groupedStandings).map(([groupName, groupStandings]) => (
+            <div key={groupName} className="standings-group-card">
+              <div className="standings-group-header">
+                <h3>Grupo {groupName}</h3>
+              </div>
+
+              <StandingTable standings={groupStandings} />
+            </div>
+          ))}
         </div>
-      ))}
+      </section>
     </div>
   );
 }

@@ -4,10 +4,10 @@ export default function StandingTable({ standings }) {
   }
 
   return (
-    <table className="standings-table">
+    <table className="standings-table premium">
       <thead>
         <tr>
-          <th>Time</th>
+          <th>Seleção</th>
           <th>Pts</th>
           <th>J</th>
           <th>V</th>
