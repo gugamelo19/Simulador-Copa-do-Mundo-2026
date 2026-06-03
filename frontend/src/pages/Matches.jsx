@@ -18,10 +18,12 @@ const FILTERS = [
   { key: "R32", label: "16 Avos" },
   { key: "R16", label: "Oitavas" },
   { key: "QF", label: "Quartas" },
-  { key: "SF", label: "Semifinais" },
+  { key: "SF", label: "Semis" },
   { key: "THIRD", label: "3º Lugar" },
   { key: "FINAL", label: "Final" },
 ];
+
+const GROUP_KEYS = ["A","B","C","D","E","F","G","H","I","J","K","L"];
 
 export default function Matches() {
   const [matches, setMatches] = useState([]);
@@ -32,144 +34,103 @@ export default function Matches() {
 
   async function fetchMatches() {
     try {
-      const response = await client.get("/matches/");
-      setMatches(Array.isArray(response.data) ? response.data : []);
-    } catch (err) {
-      console.error("Erro ao carregar partidas:", err);
+      const res = await client.get("/matches/");
+      setMatches(Array.isArray(res.data) ? res.data : []);
+    } catch {
       setError("Erro ao carregar partidas.");
     } finally {
       setLoading(false);
     }
   }
 
-  async function simulateMatch(matchId) {
+  async function simulateMatch(id) {
     try {
-      await client.post(`/matches/${matchId}/simulate/`);
+      await client.post(`/matches/${id}/simulate/`);
       await fetchMatches();
-    } catch (err) {
-      console.error("Erro ao simular partida:", err);
-    }
+    } catch { /* silent */ }
   }
 
-  async function simulateAllMatches() {
+  async function simulateAll() {
     try {
       setSimulatingAll(true);
-      setError("");
       await client.post("/matches/simulate-all/");
       await fetchMatches();
-    } catch (err) {
-      console.error("Erro ao simular todas as partidas:", err);
-      setError("Erro ao simular todas as partidas.");
+    } catch {
+      setError("Erro ao simular partidas.");
     } finally {
       setSimulatingAll(false);
     }
   }
 
-  async function resetMatches() {
+  async function reset() {
     try {
       await client.post("/dashboard/reset-tournament/");
       await fetchMatches();
-    } catch (err) {
-      console.error("Erro ao resetar partidas:", err);
-      setError("Erro ao resetar partidas.");
+    } catch {
+      setError("Erro ao resetar.");
     }
   }
 
-  useEffect(() => {
-    fetchMatches();
-  }, []);
+  useEffect(() => { fetchMatches(); }, []);
 
-  const filteredMatches = useMemo(() => {
+  const filtered = useMemo(() => {
     if (selectedFilter === "ALL") return matches;
-
-    if (["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"].includes(selectedFilter)) {
-      return matches.filter((match) => match.group_name === selectedFilter);
-    }
-
-    return matches.filter((match) => match.phase === selectedFilter);
+    if (GROUP_KEYS.includes(selectedFilter))
+      return matches.filter((m) => m.group_name === selectedFilter);
+    return matches.filter((m) => m.phase === selectedFilter);
   }, [matches, selectedFilter]);
 
-  if (loading) {
-    return (
-      <div className="page">
-        <section className="matches-premium-page">
-          <h1 className="section-title"><span>Partidas</span></h1>
-          <p>Carregando partidas...</p>
-        </section>
-      </div>
-    );
-  }
+  if (loading) return <div className="page"><p className="loading-text">Carregando partidas...</p></div>;
 
   return (
     <div className="page">
-      <section className="matches-premium-page">
-        <div className="matches-header-row">
-          <h1 className="section-title">
-            <span>Partidas</span>
-          </h1>
-
-          <button className="matches-reset-button" onClick={resetMatches}>
-            ↻ Resetar
-          </button>
+      <div className="matches-toolbar">
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <h1 className="page-title">Partidas</h1>
         </div>
+        <div className="matches-toolbar-actions">
+          <button className="btn btn-primary" onClick={simulateAll} disabled={simulatingAll}>
+            {simulatingAll ? "Simulando..." : "Simular Todas"}
+          </button>
+          <button className="btn btn-ghost" onClick={reset}>Resetar</button>
+        </div>
+      </div>
 
-        <div className="matches-top-actions">
+      {error && <p className="loading-text">{error}</p>}
+
+      <div className="filter-bar">
+        {FILTERS.map((f) => (
           <button
-            className="matches-run-all-button"
-            onClick={simulateAllMatches}
-            disabled={simulatingAll}
+            key={f.key}
+            className={selectedFilter === f.key ? "filter-btn active" : "filter-btn"}
+            onClick={() => setSelectedFilter(f.key)}
           >
-            {simulatingAll ? "Simulando..." : "⚽ Simular Todas"}
+            {f.label}
           </button>
-        </div>
+        ))}
+      </div>
 
-        {error && <p>{error}</p>}
-
-        <div className="group-filter-bar">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter.key}
-              className={selectedFilter === filter.key ? "group-filter-btn active" : "group-filter-btn"}
-              onClick={() => setSelectedFilter(filter.key)}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="matches-premium-grid">
-          {filteredMatches.map((match) => (
-            <div key={match.id} className="premium-match-card">
-              <div className="premium-match-main-row">
-                <div className="premium-team premium-team-left">
-                  <span>{match.home_team_name}</span>
-                </div>
-
-                <div className="premium-score-box">
-                  {match.played ? `${match.home_score} - ${match.away_score}` : "vs"}
-                </div>
-
-                <div className="premium-team premium-team-right">
-                  <span>{match.away_team_name}</span>
-                </div>
-              </div>
-
-              <div className="premium-match-meta">
-                {match.group_name ? `Grupo ${match.group_name}` : match.phase}
-              </div>
-
-              {!match.played && (
-                <button
-                  className="premium-match-simulate-btn"
-                  onClick={() => simulateMatch(match.id)}
-                >
-                  Simular
-                </button>
-              )}
+      <div className="matches-grid">
+        {filtered.map((match) => (
+          <div key={match.id} className="match-card">
+            <div className="match-teams-row">
+              <span className="match-team left">{match.home_team_name}</span>
+              <span className="match-score">
+                {match.played ? `${match.home_score} – ${match.away_score}` : "vs"}
+              </span>
+              <span className="match-team right">{match.away_team_name}</span>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="match-meta">
+              {match.group_name ? `Grupo ${match.group_name}` : match.phase}
+            </div>
+            {!match.played && (
+              <button className="match-simulate-btn" onClick={() => simulateMatch(match.id)}>
+                Simular
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

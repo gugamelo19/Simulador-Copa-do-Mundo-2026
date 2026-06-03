@@ -8,28 +8,10 @@ export default function Home() {
 
   useEffect(() => {
     let isMounted = true;
-
-    async function loadDashboard() {
-      try {
-        const response = await client.get("/dashboard/");
-
-        if (isMounted) {
-          setDashboard(response.data);
-        }
-      } catch (err) {
-        console.error("Erro ao carregar dashboard:", err);
-
-        if (isMounted) {
-          setError("Erro ao carregar dados do dashboard.");
-        }
-      }
-    }
-
-    loadDashboard();
-
-    return () => {
-      isMounted = false;
-    };
+    client.get("/dashboard/")
+      .then((res) => { if (isMounted) setDashboard(res.data); })
+      .catch(() => { if (isMounted) setError("Erro ao carregar dados."); });
+    return () => { isMounted = false; };
   }, []);
 
   const simulationFinished =
@@ -40,89 +22,64 @@ export default function Home() {
   if (error) {
     return (
       <div className="page">
-        <div className="home-premium">
-          <h2>Dashboard</h2>
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!dashboard) {
-    return (
-      <div className="page">
-        <div className="home-premium">
-          <h2>Dashboard</h2>
-          <p>Carregando dados...</p>
-        </div>
+        <p className="loading-text">{error}</p>
       </div>
     );
   }
 
   return (
     <div className="page">
-      <section className="home-premium">
-        <div className="hero-icon">⚽</div>
-
-        <h1 className="hero-title">
+      <div className="home-hero">
+        <h1>
           Copa do Mundo <span>2026</span>
         </h1>
-
-        <p className="hero-subtitle">
+        <p>
           Simule todos os jogos da Copa do Mundo FIFA 2026 — Estados Unidos,
           México e Canadá. 48 seleções, 12 grupos, 104 partidas.
         </p>
 
-        <div className="hero-stats-grid">
-          <div className="hero-stat-card">
-            <div className="hero-stat-icon green">👥</div>
-            <strong>48</strong>
-            <span>Seleções</span>
+        {dashboard && (
+          <div className="home-stats">
+            <div className="home-stat">
+              <div className="home-stat-value">48</div>
+              <div className="home-stat-label">Seleções</div>
+            </div>
+            <div className="home-stat">
+              <div className="home-stat-value">{dashboard.total_groups}</div>
+              <div className="home-stat-label">Grupos</div>
+            </div>
+            <div className="home-stat">
+              <div className="home-stat-value">{dashboard.played_matches}</div>
+              <div className="home-stat-label">Simuladas</div>
+            </div>
+            <div className="home-stat">
+              <div className="home-stat-value">{dashboard.total_matches}</div>
+              <div className="home-stat-label">Total</div>
+            </div>
           </div>
+        )}
 
-          <div className="hero-stat-card">
-            <div className="hero-stat-icon gold">🏆</div>
-            <strong>{dashboard.total_groups}</strong>
-            <span>Grupos</span>
-          </div>
-
-          <div className="hero-stat-card">
-            <div className="hero-stat-icon green">⚔️</div>
-            <strong>{dashboard.played_matches}</strong>
-            <span>Partidas Simuladas</span>
-          </div>
-
-          <div className="hero-stat-card">
-            <div className="hero-stat-icon gold">📊</div>
-            <strong>{dashboard.total_matches}</strong>
-            <span>Total de Partidas</span>
-          </div>
-        </div>
-
-        <div className="hero-actions">
+        <div className="home-actions">
           {!simulationFinished ? (
-            <Link to="/matches" className="primary-hero-button">
-              ▶ Iniciar Simulação
+            <Link to="/matches" className="btn btn-primary">
+              Iniciar Simulação
             </Link>
           ) : (
             <>
-              <Link to="/standings" className="primary-hero-button">
-                🏆 Ver Resultados
+              <Link to="/standings" className="btn btn-primary">
+                Ver Resultados
               </Link>
-
-              <Link to="/matches" className="secondary-hero-button">
-                ↻ Nova Simulação
+              <Link to="/matches" className="btn btn-secondary">
+                Nova Simulação
               </Link>
             </>
           )}
         </div>
 
         {simulationFinished && (
-          <p className="simulation-done-text">
-            ✅ Simulação concluída! Explore os resultados nas abas acima.
-          </p>
+          <p className="home-done-text">Simulação concluída.</p>
         )}
-      </section>
+      </div>
     </div>
   );
 }

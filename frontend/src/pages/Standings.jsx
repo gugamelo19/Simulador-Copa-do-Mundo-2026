@@ -1,77 +1,76 @@
 import { useEffect, useState } from "react";
 import client from "../api/client";
-import StandingTable from "../components/StandingTable";
 
 export default function Standings() {
   const [standings, setStandings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  async function fetchStandings() {
-    try {
-      const response = await client.get("/standings/");
-      setStandings(response.data);
-    } catch (error) {
-      console.error("Erro ao carregar classificação:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    fetchStandings();
+    client.get("/standings/")
+      .then((res) => setStandings(res.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  function groupStandingsByGroup(data) {
-    return data.reduce((acc, standing) => {
-      const groupName = standing.group_name;
+  if (loading) return <div className="page"><p className="loading-text">Carregando...</p></div>;
 
-      if (!acc[groupName]) {
-        acc[groupName] = [];
-      }
-
-      acc[groupName].push(standing);
-      return acc;
-    }, {});
-  }
-
-  if (loading) {
-    return (
-      <div className="page">
-        <section className="standings-page">
-          <h1 className="section-title">
-            <span>Resultados</span>
-          </h1>
-          <p>Carregando classificação...</p>
-        </section>
-      </div>
-    );
-  }
-
-  const groupedStandings = groupStandingsByGroup(standings);
+  const grouped = standings.reduce((acc, s) => {
+    if (!acc[s.group_name]) acc[s.group_name] = [];
+    acc[s.group_name].push(s);
+    return acc;
+  }, {});
 
   return (
     <div className="page">
-      <section className="standings-page">
-        <h1 className="section-title">
-          <span>Resultados</span>
-        </h1>
+      <div className="page-header">
+        <h1 className="page-title">Classificação</h1>
+        <p className="page-subtitle">Fase de grupos — Copa do Mundo 2026</p>
+      </div>
 
-        <p className="section-subtitle">
-          Classificação atual da fase de grupos da Copa 2026.
-        </p>
-
-        <div className="standings-groups-grid">
-          {Object.entries(groupedStandings).map(([groupName, groupStandings]) => (
-            <div key={groupName} className="standings-group-card">
-              <div className="standings-group-header">
-                <h3>Grupo {groupName}</h3>
-              </div>
-
-              <StandingTable standings={groupStandings} />
+      <div className="standings-grid">
+        {Object.entries(grouped).map(([groupName, gs]) => (
+          <div key={groupName} className="group-card">
+            <div className="group-card-header">
+              <h3>Grupo {groupName}</h3>
             </div>
-          ))}
-        </div>
-      </section>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th style={{ textAlign: "left" }}>Seleção</th>
+                  <th>J</th>
+                  <th>V</th>
+                  <th>E</th>
+                  <th>D</th>
+                  <th>GP</th>
+                  <th>GC</th>
+                  <th>SG</th>
+                  <th>Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gs.map((team, i) => (
+                  <tr key={team.id}>
+                    <td>{i + 1}</td>
+                    <td className="team-cell">
+                      {team.team_name}
+                      <span className="team-code">{team.team_code}</span>
+                    </td>
+                    <td>{team.played}</td>
+                    <td>{team.wins}</td>
+                    <td>{team.draws}</td>
+                    <td>{team.losses}</td>
+                    <td>{team.goals_for}</td>
+                    <td>{team.goals_against}</td>
+                    <td>{team.goal_difference}</td>
+                    <td className="pts">{team.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

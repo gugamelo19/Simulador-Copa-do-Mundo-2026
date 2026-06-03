@@ -7,90 +7,48 @@ export default function Results() {
 
   useEffect(() => {
     let isMounted = true;
-
-    async function loadResults() {
-      try {
-        const response = await client.get("/dashboard/results/");
-        if (isMounted) {
-          setResults(response.data);
-        }
-      } catch (err) {
-        console.error("Erro ao carregar resultados:", err);
-        if (isMounted) {
-          setError("Erro ao carregar resultados finais.");
-        }
-      }
-    }
-
-    loadResults();
-
-    return () => {
-      isMounted = false;
-    };
+    client.get("/dashboard/results/")
+      .then((res) => { if (isMounted) setResults(res.data); })
+      .catch(() => { if (isMounted) setError("Erro ao carregar resultados."); });
+    return () => { isMounted = false; };
   }, []);
 
-  if (error) {
-    return (
-      <div className="page">
-        <section className="results-page">
-          <h1 className="section-title">
-            <span>Resultados Finais</span>
-          </h1>
-          <p>{error}</p>
-        </section>
-      </div>
-    );
-  }
-
-  if (!results) {
-    return (
-      <div className="page">
-        <section className="results-page">
-          <h1 className="section-title">
-            <span>Resultados Finais</span>
-          </h1>
-          <p>Carregando resultados...</p>
-        </section>
-      </div>
-    );
-  }
+  if (error) return <div className="page"><p className="loading-text">{error}</p></div>;
+  if (!results) return <div className="page"><p className="loading-text">Carregando...</p></div>;
 
   return (
     <div className="page">
-      <section className="results-page">
-        <h1 className="section-title">
-          <span>Resultados Finais</span>
-        </h1>
+      <div className="page-header">
+        <h1 className="page-title">Resultados Finais</h1>
+      </div>
 
-        {results.final_played ? (
-          <div className="results-grid">
-            <div className="results-card champion">
-              <h3>🏆 Campeão</h3>
-              <p>{results.champion || "-"}</p>
-            </div>
-
-            <div className="results-card">
-              <h3>🥈 Vice-Campeão</h3>
-              <p>{results.vice || "-"}</p>
-            </div>
-
-            <div className="results-card">
-              <h3>🥉 3º Lugar</h3>
-              <p>{results.third_place || "-"}</p>
-            </div>
-
-            <div className="results-card">
-              <h3>4º Lugar</h3>
-              <p>{results.fourth_place || "-"}</p>
-            </div>
+      {results.final_played ? (
+        <div className="results-podium">
+          <div className="result-card champion">
+            <div className="result-card-label">Campeão</div>
+            <div className="result-card-value">{results.champion || "—"}</div>
           </div>
-        ) : (
-          <div className="results-card">
-            <h3>Torneio ainda não finalizado</h3>
-            <p>Execute o mata-mata completo para visualizar os resultados finais.</p>
+          <div className="result-card">
+            <div className="result-card-label">Vice-Campeão</div>
+            <div className="result-card-value">{results.vice || "—"}</div>
           </div>
-        )}
-      </section>
+          <div className="result-card">
+            <div className="result-card-label">3º Lugar</div>
+            <div className="result-card-value">{results.third_place || "—"}</div>
+          </div>
+          <div className="result-card">
+            <div className="result-card-label">4º Lugar</div>
+            <div className="result-card-value">{results.fourth_place || "—"}</div>
+          </div>
+        </div>
+      ) : (
+        <div className="result-card" style={{ maxWidth: 400 }}>
+          <div className="result-card-label">Torneio não finalizado</div>
+          <div className="result-card-value" style={{ fontSize: 14, fontWeight: 400, color: "var(--text-muted)" }}>
+            Execute o mata-mata completo para ver os resultados finais.
+          </div>
+        </div>
+      )}
     </div>
   );
 }

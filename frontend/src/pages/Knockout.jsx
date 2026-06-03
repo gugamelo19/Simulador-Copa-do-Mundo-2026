@@ -16,138 +16,95 @@ export default function Knockout() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
 
-  async function loadKnockoutMatches() {
+  async function load() {
     try {
-      const response = await client.get("/matches/");
-      const allMatches = Array.isArray(response.data) ? response.data : [];
-      setMatches(allMatches);
-    } catch (err) {
-      console.error("Erro ao carregar mata-mata:", err);
-      setError("Erro ao carregar os confrontos do mata-mata.");
+      const res = await client.get("/matches/");
+      setMatches(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setError("Erro ao carregar mata-mata.");
     } finally {
       setLoading(false);
     }
   }
 
-  async function runFullKnockout() {
+  async function runKnockout() {
     try {
       setRunning(true);
-      setError("");
       await client.post("/dashboard/knockout/run-full/");
-      await loadKnockoutMatches();
-    } catch (err) {
-      console.error("Erro ao executar mata-mata:", err);
-      setError("Erro ao executar o mata-mata.");
+      await load();
+    } catch {
+      setError("Erro ao executar mata-mata.");
     } finally {
       setRunning(false);
     }
   }
 
-  useEffect(() => {
-    loadKnockoutMatches();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  const knockoutData = useMemo(() => {
-    const grouped = {
-      R32: [],
-      R16: [],
-      QF: [],
-      SF: [],
-      FINAL: [],
-      THIRD: [],
-    };
-
-    matches.forEach((match) => {
-      if (grouped[match.phase]) {
-        grouped[match.phase].push(match);
-      }
-    });
-
-    return grouped;
+  const grouped = useMemo(() => {
+    const g = { R32: [], R16: [], QF: [], SF: [], FINAL: [], THIRD: [] };
+    matches.forEach((m) => { if (g[m.phase]) g[m.phase].push(m); });
+    return g;
   }, [matches]);
 
-  const finalMatch = knockoutData.FINAL?.[0];
-  const championName =
-    finalMatch && finalMatch.played
-      ? finalMatch.winner_name || "A definir"
-      : "A definir";
+  const finalMatch = grouped.FINAL?.[0];
+  const champion = finalMatch?.played ? (finalMatch.winner_name || "A definir") : null;
 
-  if (loading) {
-    return (
-      <div className="page">
-        <section className="knockout-page">
-          <h1 className="section-title">
-            <span>Mata-Mata</span>
-          </h1>
-          <p>Carregando mata-mata...</p>
-        </section>
-      </div>
-    );
-  }
+  if (loading) return <div className="page"><p className="loading-text">Carregando...</p></div>;
 
   return (
     <div className="page">
-      <section className="knockout-page">
-        <div className="matches-header-row">
-          <h1 className="section-title">
-            <span>Mata-Mata</span>
-          </h1>
-
-          <button
-            className="knockout-run-button"
-            onClick={runFullKnockout}
-            disabled={running}
-          >
-            {running ? "Executando..." : "⚔️ Gerar e Simular Mata-Mata"}
-          </button>
+      <div className="knockout-toolbar">
+        <div className="page-header" style={{ marginBottom: 0 }}>
+          <h1 className="page-title">Mata-Mata</h1>
         </div>
+        <button className="btn btn-primary" onClick={runKnockout} disabled={running}>
+          {running ? "Executando..." : "Gerar e Simular"}
+        </button>
+      </div>
 
-        {error && <p>{error}</p>}
+      {error && <p className="loading-text">{error}</p>}
 
-        <div className="champion-banner">
-          <div className="champion-icon">🏆</div>
-          <p className="champion-label">CAMPEÃO</p>
-          <h2 className="champion-name">{championName}</h2>
+      <div className={`champion-bar${champion ? " crowned" : ""}`}>
+        <div className="champion-bar-label">Campeão</div>
+        <div className={`champion-bar-name${champion ? "" : " empty"}`}>
+          {champion || "A definir"}
         </div>
+      </div>
 
-        <div className="knockout-columns">
-          {PHASES.map((phase) => (
-            <div key={phase.key} className="knockout-column">
-              <h3 className="knockout-column-title">{phase.label}</h3>
-
-              <div className="knockout-match-list">
-                {(knockoutData[phase.key] || []).length > 0 ? (
-                  knockoutData[phase.key].map((match) => {
-                    const homeWon =
-                      match.played &&
-                      match.winner_name === match.home_team_name;
-
-                    const awayWon =
-                      match.played &&
-                      match.winner_name === match.away_team_name;
-
-                    return (
-                      <div key={match.id} className="knockout-match-card">
-                        <div className={`knockout-team-row ${homeWon ? "winner" : ""}`}>
-                          <span>{match.home_team_name}</span>
-                          <strong>{match.played ? match.home_score : "-"}</strong>
-                        </div>
-
-                        <div className={`knockout-team-row ${awayWon ? "winner" : ""}`}>
-                          <span>{match.away_team_name}</span>
-                          <strong>{match.played ? match.away_score : "-"}</strong>
-                        </div>
+      <div className="knockout-phases">
+        {PHASES.map((phase) => (
+          <div key={phase.key}>
+            <div className="knockout-phase-label">{phase.label}</div>
+            <div className="knockout-match-list">
+              {grouped[phase.key].length > 0 ? (
+                grouped[phase.key].map((match) => {
+                  const homeWon = match.played && match.winner_name === match.home_team_name;
+                  const awayWon = match.played && match.winner_name === match.away_team_name;
+                  return (
+                    <div key={match.id} className="knockout-match">
+                      <div className={`knockout-team${homeWon ? " winner" : ""}`}>
+                        <span>{match.home_team_name || "—"}</span>
+                        <span className="knockout-team-score">
+                          {match.played ? match.home_score : "—"}
+                        </span>
                       </div>
-                    );
-                  })
-                ) : (
-                  <p className="knockout-empty">Sem confrontos</p>
-                )}
-              </div>
+                      <div className={`knockout-team${awayWon ? " winner" : ""}`}>
+                        <span>{match.away_team_name || "—"}</span>
+                        <span className="knockout-team-score">
+                          {match.played ? match.away_score : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="knockout-empty">—</p>
+              )}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
